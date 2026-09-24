@@ -74,9 +74,12 @@ with st.container():
 
         question = st.text_input(
             "What would you like to know?",
-            value=example_questions[0],
+            value=example_questions[1],
             key="question_input",
         )
+        st.caption("Sample questions")
+        for example_question in example_questions:
+            st.markdown(f"- {example_question}")
 
         if st.button("Ask question", type="primary"):
             with st.spinner("Generating and checking SQL..."):
