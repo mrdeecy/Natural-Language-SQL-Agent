@@ -8,7 +8,7 @@ from src.run_agent import run_question
 
 st.set_page_config(page_title="Pagila SQL Agent", page_icon="🧠", layout="wide")
 
-admin_user = False
+admin_user = True
 
 st.markdown("<h1 style='margin-top: 0; margin-bottom: 10px;'>Pagila SQL Agent</h1>", unsafe_allow_html=True)
 st.caption("Ask natural-language questions about the Pagila sample database and route uncertain SQL to review.")
@@ -94,7 +94,7 @@ with st.container():
             if result.get("generated_sql"):
                 st.code(result["generated_sql"], language="sql")
 
-            if result.get("execution_result"):
+            if result.get("execution_result") is not None:
                 rows = result["execution_result"]
                 if rows:
                     df = pd.DataFrame(rows)
@@ -140,7 +140,7 @@ if st.button("Ask question", type="primary"):
         if result.get("generated_sql"):
             st.code(result["generated_sql"], language="sql")
 
-        if result.get("execution_result"):
+        if result.get("execution_result") is not None:
             rows = result["execution_result"]
             if rows:
                 df = pd.DataFrame(rows)
