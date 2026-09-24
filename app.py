@@ -95,11 +95,9 @@ with st.container():
             result = st.session_state.pending_result
             if result and result.get("status") == "needs_human":
                 st.warning("This query needs human review before execution.")
-                st.json({
-                    "generated_sql": result.get("generated_sql"),
-                    "confidence": result.get("confidence"),
-                    "reasoning": result.get("confidence_reasoning"),
-                })
+                st.code(format_sql(result.get("generated_sql")), language="sql")
+                st.write(f"Confidence: {result.get('confidence')}")
+                st.write(f"Reasoning: {result.get('confidence_reasoning')}")
             elif result:
                 if result.get("sql_error"):
                     st.error(f"Query failed: {result['sql_error']}")
@@ -114,7 +112,7 @@ with st.container():
                 if result.get("confidence_reasoning"):
                     st.write(f"Reasoning: {result['confidence_reasoning']}")
                 if result.get("generated_sql"):
-                    st.code(result["generated_sql"], language="sql")
+                    st.code(format_sql(result["generated_sql"]), language="sql")
 
                 if result.get("execution_result") is not None:
                     rows = result["execution_result"]
