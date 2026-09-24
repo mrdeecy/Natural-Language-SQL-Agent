@@ -6,6 +6,7 @@ from src.access import is_admin_email, is_logged_in, user_email
 from src.config import CONFIDENCE_THRESHOLD, MAX_RETRIES
 from src.baseline import generate_sql_baseline
 from src.db import is_read_only_sql, validate_read_only_db
+from src.nodes import execute_sql
 from src.schema_context import get_schema_context
 from src.routers import retry_cap_exceeded, preflight_router, confidence_router, human_review_router, execute_result_router
 from src.state import AgentState
@@ -107,3 +108,32 @@ def test_streamlit_user_proxy_access_is_safe_when_identity_is_missing():
 
     assert is_logged_in(user) is False
     assert user_email(user) is None
+
+
+def test_query_results_preserve_sql_column_names(monkeypatch):
+    class FakeCursor:
+        description = [("title",), ("rental_count",)]
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def execute(self, sql):
+            self.sql = sql
+
+        def fetchall(self):
+            return [("ACADEMY DINOSAUR", 23)]
+
+    class FakeConnection:
+        def cursor(self):
+            return FakeCursor()
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr("src.nodes.get_connection", lambda: FakeConnection())
+    result = execute_sql({"generated_sql": "SELECT title, rental_count FROM film", "retry_count": 0})
+
+    assert result["execution_result"] == [{"title": "ACADEMY DINOSAUR", "rental_count": 23}]

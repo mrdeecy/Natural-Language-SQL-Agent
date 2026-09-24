@@ -70,6 +70,15 @@ def format_sql(sql: str | None) -> str | None:
         return sql
     return sqlparse.format(sql, reindent=True, keyword_case="upper")
 
+
+def result_dataframe(rows: list[dict]) -> pd.DataFrame:
+    dataframe = pd.DataFrame(rows)
+    dataframe.columns = [
+        str(column).replace("_", " ").title()
+        for column in dataframe.columns
+    ]
+    return dataframe
+
 with st.container():
     tabs = st.tabs(["Ask question", "Admin approval", "Clear"])
     with tabs[0]:
@@ -117,7 +126,7 @@ with st.container():
                 if result.get("execution_result") is not None:
                     rows = result["execution_result"]
                     if rows:
-                        st.dataframe(pd.DataFrame(rows), use_container_width=True)
+                        st.dataframe(result_dataframe(rows), use_container_width=True)
                     else:
                         st.write("No rows returned.")
 
@@ -167,8 +176,7 @@ with st.container():
             if result.get("execution_result") is not None:
                 rows = result["execution_result"]
                 if rows:
-                    df = pd.DataFrame(rows)
-                    st.dataframe(df, use_container_width=True)
+                    st.dataframe(result_dataframe(rows), use_container_width=True)
                 else:
                     st.write("No rows returned.")
     with tabs[2]:

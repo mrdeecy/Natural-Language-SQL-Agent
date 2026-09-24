@@ -197,7 +197,8 @@ def execute_sql(state: AgentState) -> dict:
         try:
             with conn.cursor() as cur:
                 cur.execute(sql)
-                rows = cur.fetchall()
+                columns = [column[0] for column in cur.description or []]
+                rows = [dict(zip(columns, row)) for row in cur.fetchall()]
         finally:
             conn.close()
         return {"execution_result": rows, "sql_error": None}
