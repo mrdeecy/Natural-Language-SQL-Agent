@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from src.access import is_admin_email
+from src.access import is_admin_email, is_logged_in, user_email
 from src.config import CONFIDENCE_THRESHOLD, MAX_RETRIES
 from src.baseline import generate_sql_baseline
 from src.db import is_read_only_sql, validate_read_only_db
@@ -100,3 +100,10 @@ def test_admin_access_is_case_insensitive_and_denies_unknown_users(monkeypatch):
     assert is_admin_email("reviewer@example.com") is True
     assert is_admin_email("visitor@example.com") is False
     assert is_admin_email(None) is False
+
+
+def test_streamlit_user_proxy_access_is_safe_when_identity_is_missing():
+    user = {}
+
+    assert is_logged_in(user) is False
+    assert user_email(user) is None

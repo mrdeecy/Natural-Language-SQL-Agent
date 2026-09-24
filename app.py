@@ -3,23 +3,23 @@ from __future__ import annotations
 import streamlit as st
 import pandas as pd
 
-from src.access import is_admin_email
+from src.access import is_admin_email, is_logged_in, user_email
 from src.run_agent import run_question
 
 st.set_page_config(page_title="Pagila SQL Agent", page_icon="🧠", layout="wide")
 
-if not st.user.is_logged_in:
+if not is_logged_in(st.user):
     st.title("Pagila SQL Agent")
     st.write("Sign in to ask questions about the Pagila database.")
     st.button("Sign in with Google", on_click=st.login)
     st.stop()
 
-user_email = getattr(st.user, "email", None)
-admin_user = is_admin_email(user_email)
+email = user_email(st.user)
+admin_user = is_admin_email(email)
 
 st.markdown("<h1 style='margin-top: 0; margin-bottom: 10px;'>Pagila SQL Agent</h1>", unsafe_allow_html=True)
 st.caption("Ask natural-language questions about the Pagila sample database and route uncertain SQL to review.")
-st.caption(f"Signed in as {user_email or 'authenticated user'}")
+st.caption(f"Signed in as {email or 'authenticated user'}")
 st.button("Sign out", on_click=st.logout)
 
 if "history" not in st.session_state:
