@@ -1,0 +1,38 @@
+[project]
+name = "agent-sql"
+version = "0.1.0"
+description = "Natural-language SQL agent using LangGraph and a read-only Pagila database"
+readme = "README.md"
+authors = [
+    { name = "mrdeecy", email = "equarshie258@gmail.com" }
+]
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "ipykernel>=7.3.0",
+    "jupyter>=1.1.1",
+    "langgraph>=0.2.52",
+    "langchain>=0.3.0",
+    "langchain-openai>=0.2.0",
+    "openai>=1.40.0",
+    "psycopg2-binary>=2.9.9",
+    "python-dotenv>=1.0.1",
+    "pydantic>=2.7.0",
+    "langsmith>=0.14.0,<0.15.0",
+    "pytest>=8.0.0",
+    "streamlit>=1.64.0",
+    "pandas>=3.0.6",
+]
+
+[project.scripts]
+agent-sql = "agent_sql:main"
+
+[build-system]
+requires = ["hatchling>=1.21.0"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+
+[tool.uv]
+package = true
+link-mode = "copy"

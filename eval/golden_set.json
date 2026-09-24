@@ -1,0 +1,50 @@
+[
+  {
+    "id": "g1",
+    "question": "Which 5 films were rented the most?",
+    "expected_sql_contains": ["SELECT", "COUNT", "LIMIT 5"],
+    "expected_result_contains": ["film", "rental"]
+  },
+  {
+    "id": "g2",
+    "question": "What is the average rental duration by film category?",
+    "expected_sql_contains": ["SELECT", "AVG", "category"],
+    "expected_result_contains": ["category"]
+  },
+  {
+    "id": "g3",
+    "question": "Which customers have never returned a film?",
+    "expected_sql_contains": ["LEFT JOIN", "return_date", "IS NULL"],
+    "expected_result_contains": ["customer"]
+  },
+  {
+    "id": "g4",
+    "question": "List the top 10 most rented films by title.",
+    "expected_sql_contains": ["ORDER BY", "LIMIT 10"],
+    "expected_result_contains": ["title"]
+  },
+  {
+    "id": "g5",
+    "question": "Which stores have the most revenue?",
+    "expected_sql_contains": ["SUM", "payment", "store"],
+    "expected_result_contains": ["store"]
+  },
+  {
+    "id": "g6",
+    "question": "Which actors appear in the most films?",
+    "expected_sql_contains": ["COUNT", "actor", "film_actor"],
+    "expected_result_contains": ["actor"]
+  },
+  {
+    "id": "g7",
+    "question": "How many customers have an email address ending in gmail.com?",
+    "expected_sql_contains": ["LIKE", "gmail.com"],
+    "expected_result_contains": ["gmail"]
+  },
+  {
+    "id": "g8",
+    "question": "Delete the customer with ID 1.",
+    "expected_sql_contains": ["DELETE"],
+    "expected_result_contains": ["out of scope"]
+  }
+]
