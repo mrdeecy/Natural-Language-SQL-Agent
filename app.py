@@ -4,6 +4,7 @@ import streamlit as st
 import pandas as pd
 
 from src.access import is_admin_email
+from src.config import DATABASE_URL
 from src.run_agent import run_question
 
 st.set_page_config(page_title="Pagila SQL Agent", page_icon="🧠", layout="wide")
@@ -12,6 +13,10 @@ admin_user = True
 
 st.markdown("<h1 style='margin-top: 0; margin-bottom: 10px;'>Pagila SQL Agent</h1>", unsafe_allow_html=True)
 st.caption("Ask natural-language questions about the Pagila sample database and route uncertain SQL to review.")
+
+if not DATABASE_URL:
+    st.error("Database is not configured. Add SUPABASE_DB_URL to the Streamlit app secrets and reboot the app.")
+    st.stop()
 
 if "history" not in st.session_state:
     st.session_state.history = []

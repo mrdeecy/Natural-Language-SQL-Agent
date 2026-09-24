@@ -32,7 +32,6 @@ MAX_RETRIES = int(get_setting("MAX_RETRIES", "3"))
 DATABASE_URL = (
     get_setting("SUPABASE_DB_URL")
     or get_setting("DATABASE_URL")
-    or "postgresql://sql_agent:password@localhost:5432/pagila"
 )
 
 LANGCHAIN_API_KEY = get_setting("LANGCHAIN_API_KEY") or get_setting("LANGSMITH_KEY")

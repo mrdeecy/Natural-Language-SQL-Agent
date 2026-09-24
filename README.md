@@ -47,6 +47,10 @@ Supabase provides PostgreSQL, so the agent does not need a separate Supabase SDK
 `SUPABASE_DB_URL` takes precedence over `DATABASE_URL`, so local development continues to
 use the local database when the Supabase variable is absent.
 
+The application has no built-in localhost database fallback. Configure `DATABASE_URL` in
+the local `.env` file or `SUPABASE_DB_URL` in Streamlit Cloud secrets before starting the
+app.
+
 ## Streamlit Community Cloud deployment
 
 The deployed app uses Streamlit for its UI and connects directly to Supabase Postgres. A
