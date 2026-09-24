@@ -79,6 +79,39 @@ def result_dataframe(rows: list[dict]) -> pd.DataFrame:
     ]
     return dataframe
 
+
+def render_result(result: dict) -> None:
+    if result.get("status") == "needs_human":
+        st.warning("This query needs human review before execution.")
+        st.code(format_sql(result.get("generated_sql")), language="sql")
+        st.write(f"Confidence: {result.get('confidence')}")
+        st.write(f"Reasoning: {result.get('confidence_reasoning')}")
+        return
+
+    if result.get("sql_error"):
+        st.error(f"Query failed: {result['sql_error']}")
+    elif result.get("execution_result") is not None:
+        st.success("Query completed. Results are shown below.")
+    elif result.get("final_answer"):
+        st.success("Query executed successfully.")
+        st.markdown(f"**Answer:**\n{result['final_answer']}")
+    else:
+        st.info("No result available.")
+
+    if result.get("confidence") is not None:
+        st.write(f"Confidence: {result['confidence']}")
+    if result.get("confidence_reasoning"):
+        st.write(f"Reasoning: {result['confidence_reasoning']}")
+    if result.get("generated_sql"):
+        st.code(format_sql(result["generated_sql"]), language="sql")
+
+    if result.get("execution_result") is not None:
+        rows = result["execution_result"]
+        if rows:
+            st.dataframe(result_dataframe(rows), use_container_width=True)
+        else:
+            st.write("No rows returned.")
+
 with st.container():
     tabs = st.tabs(["Ask question", "Admin approval", "Clear"])
     with tabs[0]:
@@ -101,36 +134,8 @@ with st.container():
             with st.spinner("Generating and checking SQL..."):
                 submit_question(question)
 
-            result = st.session_state.pending_result
-            if result and result.get("status") == "needs_human":
-                st.warning("This query needs human review before execution.")
-                st.code(format_sql(result.get("generated_sql")), language="sql")
-                st.write(f"Confidence: {result.get('confidence')}")
-                st.write(f"Reasoning: {result.get('confidence_reasoning')}")
-            elif result:
-                if result.get("sql_error"):
-                    st.error(f"Query failed: {result['sql_error']}")
-                elif result.get("execution_result") is not None:
-                    st.success("Query completed. Results are shown below.")
-                elif result.get("final_answer"):
-                    st.success("Query executed successfully.")
-                    st.markdown(f"**Answer:**\n{result['final_answer']}")
-                else:
-                    st.info("No result available.")
-
-                if result.get("confidence") is not None:
-                    st.write(f"Confidence: {result['confidence']}")
-                if result.get("confidence_reasoning"):
-                    st.write(f"Reasoning: {result['confidence_reasoning']}")
-                if result.get("generated_sql"):
-                    st.code(format_sql(result["generated_sql"]), language="sql")
-
-                if result.get("execution_result") is not None:
-                    rows = result["execution_result"]
-                    if rows:
-                        st.dataframe(result_dataframe(rows), use_container_width=True)
-                    else:
-                        st.write("No rows returned.")
+        if st.session_state.pending_result:
+            render_result(st.session_state.pending_result)
 
     with tabs[1]:
         if not admin_user:
