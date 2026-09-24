@@ -25,8 +25,9 @@ def _get_graph_for_thread(thread_id: str):
 
 
 def _serialize_result(question: str, result: dict, thread_id: str | None = None) -> dict:
+    status = "error" if result.get("sql_error") else "ok" if result.get("final_answer") or result.get("execution_result") is not None else "error"
     return {
-        "status": "ok" if result.get("final_answer") or result.get("execution_result") is not None else "error",
+        "status": status,
         "question": question,
         "generated_sql": result.get("generated_sql"),
         "confidence": result.get("confidence"),
