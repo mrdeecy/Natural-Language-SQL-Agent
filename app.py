@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import streamlit as st
 import pandas as pd
+import sqlparse
 
 from src.access import is_admin_email
 from src.config import DATABASE_URL
@@ -63,6 +64,12 @@ def clear_query():
     st.session_state.pop("question_input", None)
     st.session_state.pop("review_reason", None)
 
+
+def format_sql(sql: str | None) -> str | None:
+    if not sql:
+        return sql
+    return sqlparse.format(sql, reindent=True, keyword_case="upper")
+
 with st.container():
     tabs = st.tabs(["Ask question", "Admin approval", "Clear"])
     with tabs[0]:
@@ -123,7 +130,7 @@ with st.container():
             st.write("Human review flow is active when confidence is low or the SQL is uncertain.")
             result = st.session_state.pending_result
             st.warning("This query needs human review before execution.")
-            st.code(result.get("generated_sql"), language="sql")
+            st.code(format_sql(result.get("generated_sql")), language="sql")
             st.write(f"Confidence: {result.get('confidence')}")
             st.write(f"Reasoning: {result.get('confidence_reasoning')}")
 
@@ -157,7 +164,7 @@ with st.container():
             if result.get("confidence_reasoning"):
                 st.write(f"Reasoning: {result['confidence_reasoning']}")
             if result.get("generated_sql"):
-                st.code(result["generated_sql"], language="sql")
+                st.code(format_sql(result["generated_sql"]), language="sql")
 
             if result.get("execution_result") is not None:
                 rows = result["execution_result"]
