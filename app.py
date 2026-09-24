@@ -110,6 +110,8 @@ with st.container():
             elif result:
                 if result.get("sql_error"):
                     st.error(f"Query failed: {result['sql_error']}")
+                elif result.get("execution_result") is not None:
+                    st.success("Query completed. Results are shown below.")
                 elif result.get("final_answer"):
                     st.success("Query executed successfully.")
                     st.markdown(f"**Answer:**\n{result['final_answer']}")
@@ -156,29 +158,8 @@ with st.container():
                 if st.button("Reject SQL", key="reject_sql"):
                     resume_review("reject", review_reason)
 
-        elif admin_user and st.session_state.pending_result:
-            result = st.session_state.pending_result
-            if result.get("sql_error"):
-                st.error(f"Query failed: {result['sql_error']}")
-            elif result.get("final_answer"):
-                st.success("Query executed successfully.")
-                st.markdown(f"**Answer:**\n{result['final_answer']}")
-            else:
-                st.info("No result available.")
-
-            if result.get("confidence") is not None:
-                st.write(f"Confidence: {result['confidence']}")
-            if result.get("confidence_reasoning"):
-                st.write(f"Reasoning: {result['confidence_reasoning']}")
-            if result.get("generated_sql"):
-                st.code(format_sql(result["generated_sql"]), language="sql")
-
-            if result.get("execution_result") is not None:
-                rows = result["execution_result"]
-                if rows:
-                    st.dataframe(result_dataframe(rows), use_container_width=True)
-                else:
-                    st.write("No rows returned.")
+        else:
+            st.info("No query awaiting approval.")
     with tabs[2]:
         st.write("Clear the current question, generated SQL, results, and review state.")
         if st.button("Clear current query", type="secondary"):

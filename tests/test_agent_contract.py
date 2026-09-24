@@ -7,6 +7,7 @@ from src.config import CONFIDENCE_THRESHOLD, MAX_RETRIES
 from src.baseline import generate_sql_baseline
 from src.db import is_read_only_sql, validate_read_only_db
 from src.nodes import execute_sql
+from eval.run_eval import score_item
 from src.schema_context import get_schema_context
 from src.routers import retry_cap_exceeded, preflight_router, confidence_router, human_review_router, execute_result_router
 from src.state import AgentState
@@ -137,3 +138,39 @@ def test_query_results_preserve_sql_column_names(monkeypatch):
     result = execute_sql({"generated_sql": "SELECT title, rental_count FROM film", "retry_count": 0})
 
     assert result["execution_result"] == [{"title": "ACADEMY DINOSAUR", "rental_count": 23}]
+
+
+def test_evaluation_scores_sql_and_refusal_contracts():
+    query_score = score_item(
+        {
+            "id": "q1",
+            "question": "top films",
+            "expected_sql_contains": ["SELECT", "LIMIT 5"],
+            "expected_result_contains": ["film"],
+        },
+        {
+            "generated_sql": "SELECT title FROM film LIMIT 5",
+            "final_answer": "film results",
+            "execution_result": [{"title": "A"}],
+            "sql_error": None,
+            "status": "ok",
+        },
+    )
+    refusal_score = score_item(
+        {
+            "id": "q2",
+            "question": "delete a customer",
+            "expected_sql_contains": ["DELETE"],
+            "expected_result_contains": ["out of scope"],
+        },
+        {
+            "generated_sql": None,
+            "final_answer": "This request is out of scope.",
+            "execution_result": None,
+            "sql_error": None,
+            "status": "ok",
+        },
+    )
+
+    assert query_score["passed"] is True
+    assert refusal_score["passed"] is True

@@ -107,6 +107,37 @@ The generation node asks the model for structured JSON with:
 
 The score is intentionally conservative when the question is ambiguous, requires a complex join, or follows a failed retry. This is a lightweight uncertainty signal rather than a calibrated measure of correctness.
 
+## LangGraph tracing and evaluation
+
+LangGraph runs include a stable run name, tags, and metadata. To send traces to LangSmith,
+set these values in `.env` for local runs or in Streamlit Cloud secrets:
+
+```toml
+LANGCHAIN_TRACING_V2 = "true"
+LANGCHAIN_API_KEY = "..."
+LANGCHAIN_PROJECT = "nl-sql-agent"
+LANGCHAIN_ENDPOINT = "https://api.smith.langchain.com"
+```
+
+Run the golden-set evaluator from the `agent_sql` directory:
+
+```bash
+uv run python eval/run_eval.py
+```
+
+The evaluator reports:
+
+- overall contract pass rate
+- SQL contract pass rate
+- result contract pass rate
+- successful execution count
+- average retries
+- human-escalation count
+
+The evaluation traces are tagged `evaluation` and use the `pagila-sql-agent-evaluation`
+run name, making them easy to filter in LangSmith. The evaluator checks expected SQL
+fragments and refusal behavior; it does not claim calibrated statistical accuracy.
+
 ## Environment variables
 
 | Key                  | Purpose                                                     |

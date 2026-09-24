@@ -64,7 +64,16 @@ def run_question(
 
     thread_id = thread_id or str(uuid.uuid4())
     app = _get_graph_for_thread(thread_id)
-    config = {"configurable": {"thread_id": thread_id}}
+    config = {
+        "configurable": {"thread_id": thread_id},
+        "run_name": "pagila-sql-agent",
+        "tags": ["pagila", "natural-language-sql"],
+        "metadata": {
+            "question": question,
+            "auto_approve": auto_approve,
+            "has_human_decision": decision is not None,
+        },
+    }
 
     if decision is not None:
         resume_payload = {
