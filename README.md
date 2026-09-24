@@ -63,26 +63,16 @@ separate API is not required for this application.
    CHAT_MODEL = "gpt-4o-mini"
    CONFIDENCE_THRESHOLD = "0.75"
    MAX_RETRIES = "3"
-   ADMIN_EMAILS = "reviewer@example.com"
    ```
 
    `SUPABASE_DB_URL` must use the dedicated read-only application role. Never use the
    privileged connection string used by the migration script.
 
-5. Configure Google OpenID Connect in the same Secrets editor. Register the deployed
-   app's OAuth callback URL with Google, then add:
+5. Redeploy and verify a read-only query, a low-confidence query, and a write request.
 
-   ```toml
-   [auth]
-   redirect_uri = "https://YOUR_APP.streamlit.app/oauth2callback"
-   cookie_secret = "generate-a-long-random-value"
-   client_id = "...apps.googleusercontent.com"
-   client_secret = "..."
-   server_metadata_url = "https://accounts.google.com/.well-known/openid-configuration"
-   ```
-
-6. Redeploy and verify that unauthenticated visitors see only the sign-in screen and that
-   only addresses in `ADMIN_EMAILS` can approve or reject SQL.
+This public-demo mode does not use Google OIDC. Anyone with the app URL can use the
+question flow and the human-review controls. Add authentication and admin authorization
+before using this deployment with sensitive data or untrusted users.
 
 The current review state is held in process memory. This is suitable for a single-instance
 demo, but pending reviews can be lost after an app restart and are not a durable shared queue.
@@ -145,7 +135,7 @@ uv run python eval/run_eval.py
 - The schema slice is fixed and not dynamically introspected in all cases.
 - The live Supabase migration requires a configured project connection string.
 - Human-review state uses in-process memory and is not durable across restarts.
-- Google OIDC authentication is required for the public Streamlit deployment.
+- The public demo has no authentication; human-review controls are available to visitors.
 
 ## Demo
 
