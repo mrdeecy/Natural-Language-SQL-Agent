@@ -2,6 +2,89 @@
 
 This project builds a small read-only SQL agent for the Pagila sample database using LangGraph and a human-review loop.
 
+## System Design
+
+The agent translates a user's natural-language question into a safe, read-only
+query against the Pagila PostgreSQL database. LangGraph coordinates the steps,
+while a shared `AgentState` carries the question, schema context, generated SQL,
+confidence, errors, review feedback, retry count, and final result between nodes.
+
+```mermaid
+flowchart TD
+    A[Streamlit user question] --> B[run_question]
+    B --> C[preflight]
+    C -->|Out of scope or write request| R[respond]
+    C -->|Allowed question| D[generate_sql]
+    D --> E{Confidence >= threshold?}
+    E -->|Yes| F[execute_sql]
+    E -->|No| G[human_review]
+    G -->|Approve| F
+    G -->|Reject with feedback| D
+    F -->|Read-only SQL rejected| H{Retry limit reached?}
+    F -->|Database error| H
+    F -->|Success| R
+    H -->|No| D
+    H -->|Yes| R
+    R --> Z[Final answer or query results]
+```
+
+### Main components
+
+- **UI:** `app.py` provides the Streamlit question form, result table, SQL
+  display, and approval controls.
+- **Orchestration:** `src/run_agent.py` initializes the state, invokes the
+  compiled graph, manages thread IDs, and resumes paused human reviews.
+- **Graph:** `src/graph.py` connects the `preflight`, `generate_sql`,
+  `human_review`, `execute_sql`, and `respond` nodes.
+- **State:** `src/state.py` defines the typed state shared by every node. Nodes
+  return only the fields they update; LangGraph merges those updates into the
+  current state.
+- **Routers:** `src/routers.py` choose the next node based on scope, confidence,
+  human feedback, execution errors, and the retry limit.
+
+### Request lifecycle
+
+1. `preflight` rejects write operations and questions outside the Pagila schema.
+   For allowed questions, it loads a compact schema description from
+   `src/schema_context.py`.
+2. `generate_sql` uses the schema and question to produce structured output:
+   SQL, a confidence score from 0 to 1, and reasoning. With no usable OpenAI
+   key, deterministic fallback responses keep local tests and demonstrations
+   working.
+3. The confidence router sends sufficiently confident SQL to execution. Less
+   confident SQL pauses at `human_review`, where a reviewer can approve it or
+   provide feedback for another generation attempt.
+4. `execute_sql` validates the statement, runs it through PostgreSQL, and
+   converts the returned rows into dictionaries.
+5. SQL failures can trigger regeneration until `MAX_RETRIES` is reached. The
+   `respond` node then produces the final answer, an empty-result message, or a
+   clear failure/refusal message.
+
+### Safety boundaries
+
+The system uses defense in depth before a query reaches the database:
+
+1. `src/nodes.py` blocks unsafe requests during preflight.
+2. `src/db.py` checks that the generated statement starts with an allowed
+   read-only keyword and rejects mutating SQL keywords, including statements
+   hidden behind comments.
+3. `src/db.py` verifies that the configured PostgreSQL user does not have write
+   privileges. The application should use a dedicated read-only database role.
+
+The model is also constrained by a compact schema context and Pydantic response
+models, which makes the generated SQL and confidence fields explicit and
+validated rather than relying on free-form text parsing.
+
+### Human review and persistence
+
+When confidence is below `CONFIDENCE_THRESHOLD`, `human_review` calls
+LangGraph's `interrupt()` function. The application returns the proposed SQL to
+the reviewer, then resumes the same graph thread with `Command(resume=...)`.
+The graph uses `MemorySaver`, so this review state is available while the
+process is running but can be lost after an application restart. This is
+appropriate for the current single-instance demo, but a durable checkpointer
+would be needed for a shared production review queue.
+
 ## Setup
 
 1. Create a Python environment with uv:
