@@ -180,6 +180,26 @@ The agent reasons over a condensed Pagila schema centered on:
 - film_category
 - film_actor
 
+## Questions to try
+
+Use these prompts to explore the agent's SQL generation capabilities.
+
+### Standard examples
+
+- Which actors have appeared in the most films?
+- Which film categories contain the most films?
+- Which five customers have paid the most in total?
+- How many rentals has each staff member handled?
+- Which films have never been rented?
+
+### Multi-step challenges
+
+- For each film category, show total rentals and total payment revenue, ordered by revenue from highest to lowest.
+- Which ten actors' films have received the most rentals? Show each actor's name and rental count.
+- For each store, show monthly payment revenue during 2005, ordered by month.
+- Which customers have rented films from both stores? Show their names and the number of distinct stores they rented from.
+- For each category, show how many distinct actors appeared in its films, ordered from most to fewest.
+
 ## Confidence scoring
 
 The generation node asks the model for structured JSON with:
